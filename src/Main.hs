@@ -1,3 +1,5 @@
+module Main where
+
 import System.Environment(getArgs)
 import Network.HTTP
 import AtsData
@@ -8,4 +10,4 @@ main =
       req     = postRequestWithBody url "application/json" adata
   in do resp    <- simpleHTTP req
         str     <- fmap (take 100) (getResponseBody resp)
-        print str
+        putStrLn str
