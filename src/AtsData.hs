@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module AtsData
   (
     Ats (..),
@@ -8,6 +10,9 @@ module AtsData
   ) where
 
 import Data.Int (Int64)
+import Data.Aeson
+import Control.Applicative ((<$>), (<*>))
+import Control.Monad (mzero)
 
 data Package = Package {
   errCode      :: Int,
@@ -19,38 +24,33 @@ data Package = Package {
   param1       :: Int,
   param2       :: Int,
   time         :: Int64
-  } deriving (Eq)
-  
-data Ats = Ats {
-  streamId     :: Int,
-  deviceSerial :: Int,
-  package      :: [Package]
-  } deriving (Eq)
+  } deriving (Eq,Show)
 
-instance Show Package where
-  show d =
-    let isMulty p = if p then "true" else "false"
-    in "{\"err_code\":"   ++ show (errCode d)     ++ "," ++
-       "\"err_ext\":"     ++ show (errExt d)      ++ "," ++
-       "\"errors_cnt\":"  ++ show (errorsCnt d)   ++ "," ++
-       "\"multipid\":"    ++ isMulty (multiPid d) ++ "," ++
-       "\"pid\":"         ++ show (pid d)         ++ "," ++
-       "\"priority\":"    ++ show (priority d)    ++ "," ++
-       "\"param_1\":"     ++ show (param1 d)      ++ "," ++
-       "\"param_2\":"     ++ show (param2 d)      ++ "," ++
-       "\"time\":"        ++ show (time d)        ++ "}"
+instance FromJSON Package where
+  parseJSON (Object v) = Package
+                         <$> v .: "err_code"
+                         <*> v .: "err_ext"
+                         <*> v .: "errors_cnt"
+                         <*> v .: "multipid"
+                         <*> v .: "pid"
+                         <*> v .: "priority"
+                         <*> v .: "param_1"
+                         <*> v .: "param_2"
+                         <*> v .: "time"
+  parseJSON _ = mzero
 
-instance Show Ats where
-  show d =
-    let pacToVec p =
-          case p of
-            []      -> ""
-            [h]     -> show h
-            (h:tl)  -> show h ++ "," ++ pacToVec tl
-    in ("{\"stream_id\":"     ++ show (streamId d)     ++ "," ++
-        "\"dev_serial\":"     ++ show (deviceSerial d) ++ "," ++
-        "\"package\":" ++ "[" ++ pacToVec (package d)  ++ "]}")
-
+instance ToJSON Package where
+  toJSON (Package errCode errExt errorsCnt multiPid pid priority param1 param2 time) =
+    object ["err_code"   .= errCode,
+            "err_ext"    .= errExt,
+            "errors_cnt" .= errorsCnt,
+            "multipid"   .= multiPid,
+            "pid"        .= pid,
+            "priority"   .= priority,
+            "param_1"    .= param1,
+            "param_2"    .= param2,
+            "time"       .= time]
+           
 packageDefault :: Package
 packageDefault = Package {errCode = 0,
                           errExt = 0,
@@ -61,6 +61,25 @@ packageDefault = Package {errCode = 0,
                           param1 = 0,
                           param2 = 0,
                           time = 0}
+  
+data Ats = Ats {
+  streamId     :: Int,
+  deviceSerial :: Int,
+  package      :: [Package]
+  } deriving (Eq,Show)
+
+instance FromJSON Ats where
+  parseJSON (Object v) = Ats
+                         <$> v .: "stream_id"
+                         <*> v .: "dev_serial"
+                         <*> v .: "package"
+  parseJSON _ = mzero
+
+instance ToJSON Ats where
+  toJSON (Ats streamId deviceSerial package) =
+    object ["stream_id"  .= streamId,
+            "dev_serial" .= deviceSerial,
+            "package"    .= package]
 
 atsDefault :: Ats
 atsDefault = Ats {streamId = 1,
