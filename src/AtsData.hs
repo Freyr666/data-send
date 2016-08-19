@@ -6,13 +6,15 @@ module AtsData
     Package (..),
     packageDefault,
     atsDefault,
-    atsAppendPackage
+    atsAppendPackage,
+    packageLstGen
   ) where
 
 import Data.Int (Int64)
 import Data.Aeson
 import Control.Applicative ((<$>), (<*>))
 import Control.Monad (mzero)
+import System.Random
 
 data Package = Package {
   errCode      :: Int,
@@ -61,6 +63,24 @@ packageDefault = Package {errCode = 0,
                           param1 = 0,
                           param2 = 0,
                           time = 0}
+
+packageLstGen :: Int64 -> Int64 -> Int64 -> [Package] -> [Package]
+packageLstGen start fin step lst =
+  if start >= fin
+  then lst
+  else
+    let err = fst $ randomR (1,255) (mkStdGen $ fromIntegral start)
+        pack = Package {errCode = err,
+                        errExt = 1,
+                        errorsCnt = 1,
+                        multiPid = False,
+                        pid = 0,
+                        priority = 1,
+                        param1 = 0,
+                        param2 = 0,
+                        time = start}
+    in packageLstGen (start + step) fin step (pack : lst)
+      
   
 data Ats = Ats {
   streamId     :: Int,
