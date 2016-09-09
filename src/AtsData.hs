@@ -69,17 +69,19 @@ packageLstGen start fin step lst =
   if start >= fin
   then lst
   else
-    let err = fst $ randomR (1,255) (mkStdGen $ fromIntegral start)
-        pack = Package {errCode = err,
-                        errExt = 1,
-                        errorsCnt = 1,
-                        multiPid = False,
-                        pid = 0,
-                        priority = 1,
-                        param1 = 0,
-                        param2 = 0,
-                        time = start}
-    in packageLstGen (start + step) fin step (pack : lst)
+    let err       = fst $ randomR (1,255) (mkStdGen $ fromIntegral start)
+        pri       = fst $ randomR (1,3) (mkStdGen $ fromIntegral (start + 1))
+        step_rand = fst $ randomR (0,step) (mkStdGen $ fromIntegral (start + 2))
+        pack      = Package {errCode = err,
+                            errExt = 1,
+                            errorsCnt = 1,
+                            multiPid = False,
+                            pid = 0,
+                            priority = pri,
+                            param1 = 0,
+                            param2 = 0,
+                            time = start}
+    in packageLstGen (start + step_rand) fin step (pack : lst)
       
   
 data Ats = Ats {

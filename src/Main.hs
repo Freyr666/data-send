@@ -12,11 +12,11 @@ import Worker
 
 main =
   let url     = "http://localhost:3000"
-      devs    = [1..6]
+      devs    = [5..6]
   in
     do
       res <- mapM (\dev -> do
-                      thread <- async (workerFunction url 1 212123123123 5 dev)
+                      thread <- async (workerFunction url 1 212123123123 30 dev)
                       return thread) devs
       mapM_ wait res
       print "Fin"
