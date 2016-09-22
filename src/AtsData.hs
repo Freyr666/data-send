@@ -64,24 +64,33 @@ packageDefault = Package {errCode = 0,
                           param2 = 0,
                           time = 0}
 
+packageStart :: Package
+packageStart = Package {errCode = 0,
+                        errExt = 1,
+                        errorsCnt = 1,
+                        multiPid = False,
+                        pid = 0,
+                        priority = 1,
+                        param1 = 0,
+                        param2 = 0,
+                        time = 0}
+
 packageLstGen :: Int64 -> Int64 -> Int64 -> [Package] -> [Package]
 packageLstGen start fin step lst =
   if start >= fin
   then lst
   else
     let err       = fst $ randomR (1,255) (mkStdGen $ fromIntegral start)
-        pri       = fst $ randomR (1,3) (mkStdGen $ fromIntegral (start + 1))
-        step_rand = fst $ randomR (0,step) (mkStdGen $ fromIntegral (start + 2))
         pack      = Package {errCode = err,
                             errExt = 1,
                             errorsCnt = 1,
                             multiPid = False,
                             pid = 0,
-                            priority = pri,
-                            param1 = 0,
-                            param2 = 0,
+                            priority = 1,
+                            param1 = 1,
+                            param2 = 1,
                             time = start}
-    in packageLstGen (start + step_rand) fin step (pack : lst)
+    in packageLstGen (start + step) fin step (pack : lst)
       
   
 data Ats = Ats {

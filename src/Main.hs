@@ -11,8 +11,8 @@ import Send
 import Worker
 
 main =
-  let url     = "http://localhost:3000"
-      devs    = [5..6]
+  let url     = "http://192.168.111.88:3000"
+      devs    = [1..6]
   in
     do
       res <- mapM (\dev -> do

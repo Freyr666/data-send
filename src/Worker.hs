@@ -38,23 +38,33 @@ sendStream url id dev =
     resp <- sendMessage (url ++ urlS) (toJSON astream)
     return resp
 
-sendQos :: String -> Int64 -> Int64 -> Int64 -> Int -> [Int] -> IO ()
-sendQos url start_time end_time step serial ids =
+sendQos :: String -> Int64 -> Int64 -> Int64 -> Int -> [Int] -> Bool -> IO ()
+sendQos url start_time end_time step serial ids initial =
   let half_hour = 60*30
   in if start_time >= end_time
      then putStrLn "Pack sent!"
      else
        do
          rvals <- mapM (\id ->
-                          let pack  = Package {errCode = 0,
-                                               errExt = 0,
-                                               errorsCnt = 1,
-                                               multiPid = False,
-                                               pid = 0,
-                                               priority = 1,
-                                               param1 = 0,
-                                               param2 = 0,
-                                               time = start_time}
+                          let pack  = if initial
+                                      then Package {errCode   = 0,
+                                                    errExt    = 0,
+                                                    errorsCnt = 1,
+                                                    multiPid  = False,
+                                                    pid       = 0,
+                                                    priority  = 1,
+                                                    param1    = 0,
+                                                    param2    = 0,
+                                                    time      = start_time}
+                                      else Package {errCode   = 0,
+                                                    errExt    = 1,
+                                                    errorsCnt = 1,
+                                                    multiPid  = False,
+                                                    pid       = 0,
+                                                    priority  = 1,
+                                                    param1    = 0,
+                                                    param2    = 0,
+                                                    time      = start_time}
                               packs = packageLstGen (start_time + 1) (start_time + half_hour) step [pack] 
                               adata   = Ats {streamId = id, deviceSerial = serial,
                                              package = packs}
@@ -64,7 +74,7 @@ sendQos url start_time end_time step serial ids =
          --print $  "Time: " ++ (show start_time)
          --putStrLn (show rvals)
          threadDelay (10^2 * 1)
-         sendQos url (start_time + half_hour) end_time step serial ids
+         sendQos url (start_time + half_hour) end_time step serial ids False
 
 sendData :: String -> Int64 -> Int64 -> Int64 -> Int -> IO ()
 sendData url start_time end_time step serial =
@@ -82,7 +92,7 @@ sendData url start_time end_time step serial =
         threadDelay (10^6 * 30)
         sendData url start_time end_time step serial
     else
-      sendQos url start_time end_time step serial streams
+      sendQos url start_time end_time step serial streams True
 
 workerFunction :: String -> Int64 -> Int64 -> Int64 -> Int -> IO () 
 workerFunction url start_time end_time step serial =
